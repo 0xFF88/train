@@ -1,5 +1,5 @@
-start:main.o admin.o user.o
-	gcc main.o admin.o user.o
+install:main.o admin.o user.o
+	gcc main.o admin.o user.o -o install
 main.o:main.c
 	gcc -c main.c -o main.o
 admin.o:admin.c

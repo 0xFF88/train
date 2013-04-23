@@ -1,3 +1,8 @@
+/*火车票订票系统 0.9版
+*作者：刘维聪
+*最后修改日期：2013年02月26日
+*初始管理员和密码为admin
+*/
 #include "main.h"
 #include "admin.h"
 #include "user.h"
@@ -27,7 +32,7 @@ int login()
 	system("clear");
 	printf("-------------------------------------------\n");
 	printf("\n");
-	printf("***********欢迎使用火车票订票系统**********\n");
+	printf("*******欢迎使用火车票订票系统 0.9版********\n");
 	printf("\n");
 	printf("\t请选择\n");
 	printf("\t\t1  用户登录\n");
@@ -55,18 +60,43 @@ int hide_password(char passwd[])//输入密码，并不回显
 	char ch;
 	int i = 0;
 	setbuf(stdin,NULL);
+	system("stty -echo raw");
+	while(1)//输入密码
+	{
+		
+		ch=getchar();
+		putchar('*');
+		passwd[i] = ch;
+		if('\r'==ch)
+		{
+			break;
+		}
+		i++;
+	}
+	system("stty echo -raw");
+	passwd[i] = '\0';
+	return 0;
+}
+
+/*int hide_password(char secret[])//输入密码，并不回显
+{
+	printf("\t请输入密码\n");
+	char ch;
+	int i=0;
+	setbuf(stdin,NULL);
 	while(1)//输入密码
 	{
 		system("stty -echo");
 		ch=getchar();
 		system("stty echo");
-		passwd[i] = ch;
+		secret[i]=ch;
 		if('\n'==ch)
 		{
 			break;
 		}
 		i++;
 	}
-	passwd[i] = '\0';
+	secret[i]='\0';
 	return 0;
 }
+*/

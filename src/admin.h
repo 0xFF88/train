@@ -2,7 +2,7 @@
 #define _ADMIN_H
 #include "common.h"
 #define  PRICE 32  //定义每个站之间的价格
-#define TOTAL_TICKETS 1
+#define TOTAL_TICKETS 2
 int admin();
 PTRA init_train();
 PUSE init_user();
@@ -31,4 +31,5 @@ int get_new_passwd(char new_passwd[]);
 void *my_malloc(size_t size);
 int admin_del_user(PTRA train_head,PUSE *user_head);
 int admin_cancel_user_ticket(PTRA train_head,PUSE user_head);
+int check_user_rename(char name[],PUSE head);
 #endif

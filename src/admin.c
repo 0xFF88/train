@@ -128,6 +128,7 @@ PTRA init_train()//初始化火车链表，先读火车节点的信息，然后�
 	fclose(fp_train);
 	return train_head;
 }
+
 PUSE init_user()//初始用户链表，先读用户节点信息，再读用户已购票的信息
 {
 	int i = 0;
@@ -170,7 +171,8 @@ PUSE init_user()//初始用户链表，先读用户节点信息，再读用户�
 					n_ticket = new_ticket;
 				}
 				else
-				{
+				{	
+					n_ticket = new_ticket;
 					new_user->my_ticket = new_ticket;
 				}
 				if(NULL==new_ticket->next)break;//用户购票信息读完则退出本重循环
@@ -409,8 +411,6 @@ int add_train(PTRA *train_head)//添加车次信息
 	{
 		if(ch=='y'||ch=='Y')
 		{
-//			save_train(*train_head);
-//			system("sleep 1.5");
 			return 0;
 		}
 		else//如果发现录入的信息错误询问是否重新录入
@@ -459,12 +459,6 @@ int del_one_train(PTRA *train_head)//删除火车车次信息
 		system("sleep 1.5");
 		return 0;
 	}
-	else if(train_hhead->tickets<TOTAL_TICKETS)
-	{
-		printf("尚有用户已预订此次列车的车票，请重试。\n");
-		system("sleep 1.5");
-		return 0;
-	}
 	char name[10];
 	printf("请输入要删除的车次\n");
 	scanf("%s",name);
@@ -486,7 +480,10 @@ int del_one_train(PTRA *train_head)//删除火车车次信息
 	}
 
 	
-	del_the_train(train_hhead);//删除指定的车次信息
+	if(del_the_train(train_hhead))//删除指定的车次信息
+	{
+		return 0;
+	}
 	if(NULL==p_train)
 	{
 		*train_head = (*train_head)->next;
@@ -496,9 +493,6 @@ int del_one_train(PTRA *train_head)//删除火车车次信息
 		free(p_train->next);	
 		p_train->next = train_hhead;	
 	}
-//	free(train_hhead);
-//	train_hhead->next = NULL;
-
 	if(0==i)//i为0说明要删除的火车是第一节点上的
 	{
 		*train_head = train_hhead->next;//在车次节点删除前，先将其前后两个节点相连
@@ -507,7 +501,7 @@ int del_one_train(PTRA *train_head)//删除火车车次信息
 	{
 		p_train->next = train_hhead->next;//适用于不是删除非第一个节点的情况
 	}
-	free(train_hhead);//删除该火车的站点信息后再删除该火车
+	//free(train_hhead);//删除该火车的站点信息后再删除该火车
 	printf("车次信息删除成功\n");
 	system("sleep 1.5");
 	save_train(*train_head);
@@ -517,6 +511,12 @@ int del_one_train(PTRA *train_head)//删除火车车次信息
 int del_the_train(PTRA the_train)//删除本次列车的所有信息
 {
 	//删除指定车次的所有站点信息
+	if(the_train->tickets<TOTAL_TICKETS)
+	{
+		printf("尚有用户已预订此次列车的车票，请重试。\n");
+		system("sleep 1.5");
+		return 1;
+	}
 	PSTA p_station = the_train->my_station;//每次移动前，将指针指向第一个站
 	the_train->my_station = NULL;
 	PSTA pp_station = NULL;//用于后面保存当前节点的地址
@@ -620,6 +620,20 @@ int add_user()//新用户注册
 		printf("请输入新用户名，不超过19个字符\n");
 		scanf("%s",new_user->name);
 		my_getchar();
+		int rename_flag = check_user_rename(new_user->name,user_head);//避免重名
+		for(i=0;rename_flag;i++)
+		{
+			if(i>2)
+			{
+				printf("错误的次数过多，请稍候再试。\n");
+				system("sleep 1.5");
+				return 0;
+			}
+			printf("请输入新用户名，不超过19个字符\n");
+			scanf("%s",new_user->name);
+			my_getchar();
+			rename_flag = check_user_rename(new_user->name,user_head);
+		}
 		printf("设置新密码\n");
 		hide_password(new_passwd);
 		printf("再输入一次\n");
@@ -631,6 +645,7 @@ int add_user()//新用户注册
 			{
 				printf("错误的次数过多，请稍候再试。\n");
 				free(new_user);
+				system("sleep 1.5");
 				return 0;
 			}
 			printf("两次输入的密码不一致，请重试。\n");
@@ -736,6 +751,7 @@ char my_getchar(void)//自定义getchar
 	}
 	return value;
 }
+
 void print_the_train(PTRA the_train)//打印一趟火车的站点信息
 {
 	printf("车次:%s 余票:[%d]张\n始发站:",the_train->name,the_train->tickets);
@@ -751,7 +767,7 @@ void print_the_train(PTRA the_train)//打印一趟火车的站点信息
 int print_the_user(PUSE the_user)//打印单个用户的信息
 {
 		printf("姓名:%s 密码:%s",the_user->name,the_user->passwd);
-		if(NULL!=the_user->my_ticket)
+		if(NULL!=the_user->my_ticket&&the_user->tickets>0)
 		{
 
 			PTIK the_ticket = the_user->my_ticket;
@@ -820,7 +836,6 @@ void del_station(PSTA *station_head,PSTA the_station)//利用二级指针删除�
 			pp_station = &p_now->next;
 		}
 	}
-
 }
 
 int admin_del_user(PTRA train_head,PUSE *user_head)//删除用户
@@ -839,7 +854,8 @@ int admin_del_user(PTRA train_head,PUSE *user_head)//删除用户
 	scanf("%s",del_user);
 	my_getchar();
 	PUSE *the_user = user_head;
-	for(;*the_user;)
+	int i = 0;
+	for(;*the_user;i++)
 	{
 		PUSE now_user = *the_user;
 		if(strcmp(del_user,now_user->name));
@@ -850,6 +866,23 @@ int admin_del_user(PTRA train_head,PUSE *user_head)//删除用户
 			for(;del_ticket;del_ticket = p_del_ticket)
 			{
 				p_del_ticket = del_ticket->next;
+				//************
+				PTRA the_train = train_head;
+				while(the_train)//如果该用户有正常票，则相应的火车的正常票加1
+				{
+					if(0==strcmp(the_train->name,del_ticket->train_name))
+					{
+						if(!del_ticket->flag)
+						{
+							if(the_train->cancel_ticket>=the_train->waiters)
+							the_train->tickets++;
+							else
+								the_train->cancel_ticket++;
+							break;
+						}
+					}
+					the_train = the_train->next;
+				}
 				free(del_ticket);
 			}
 			*the_user = now_user->next;
@@ -857,7 +890,7 @@ int admin_del_user(PTRA train_head,PUSE *user_head)//删除用户
 		}
 		the_user = &now_user->next;
 	}
-	if(NULL==*the_user)//指针走到最后，未查到用户
+	if(NULL==*the_user&&0==i)//指针走到最后，未查到用户
 	{
 		printf("你输入的用户不存在，请重新输入。\n");
 		system("sleep 1.5");
@@ -865,6 +898,7 @@ int admin_del_user(PTRA train_head,PUSE *user_head)//删除用户
 	}
 	return 0;
 }
+
 int admin_cancel_user_ticket(PTRA train_head,PUSE user_head)//取消用户订票
 {
 	char cancel_user[20];
@@ -889,6 +923,21 @@ int admin_cancel_user_ticket(PTRA train_head,PUSE user_head)//取消用户订票
 		printf("输入的用户名不存在\n");
 		system("sleep 1.5");
 		return 0;
+	}
+	return 0;
+}
+
+int check_user_rename(char name[],PUSE head)
+{
+	while(head)
+	{
+		if(0==strcmp(name,head->name))
+		{
+			printf("该用户名已存在，请重试。\n");
+			system("sleep 1.5");
+			return -1;
+		}
+		head = head->next;
 	}
 	return 0;
 }

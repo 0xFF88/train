@@ -53,7 +53,7 @@ int user_log(PUSE user_head,PUSE *now_user)//用户登录函数
 		if(NULL==user_head->next)
 		{
 			printf("你输入的用户不存在，请重试\n");
-			return 0;
+			return -1;
 		}
 		user_head = user_head->next;
 	}
@@ -101,7 +101,7 @@ int user_menu()//用户登录界面
 	return user_flag;
 }
 
-int search_train(PTRA train_head,PUSE user_head,PUSE now_user)
+int search_train(PTRA train_head,PUSE user_head,PUSE now_user)//按车次查询
 {
 	PTRA p_train = train_head;
 	int search_flag = search_the_train(train_head,&p_train);
@@ -134,7 +134,6 @@ int search_train(PTRA train_head,PUSE user_head,PUSE now_user)
 			my_getchar();
 			//判断是否有合适的车票,并订票
 			book_ticket(now_user,p_train,start_station,aim_station,0);
-			//是否可以return这个函数？
 		}
 		else return 0;	
 	}
@@ -146,7 +145,8 @@ int search_train(PTRA train_head,PUSE user_head,PUSE now_user)
 	}
 	return 0;
 }
-int search_station(PTRA train_head,PUSE user_head,PUSE now_user)
+
+int search_station(PTRA train_head,PUSE user_head,PUSE now_user)//站站查询
 {
 	int i = 1;
 	PTRA real_train_head = train_head;//保存火车链表的头节点的地址
@@ -237,7 +237,7 @@ int new_user_log(PUSE user_head,PUSE now_user)//新用户注册函数
 		PTIK the_ticket = now_user->my_ticket;
 		while(NULL!=the_ticket)
 		{	
-			int flag1 = 1,flag2 = 2;
+			int flag1 = 1;
 			PTIK p_the_ticket = the_ticket;//保存这张票的前一个节点的地址
  			if(1==the_ticket->flag)//当这张票是排队票时，同时
 			{						//是第一个排队的则可以去预订已退车票
@@ -264,6 +264,7 @@ int new_user_log(PUSE user_head,PUSE now_user)//新用户注册函数
 							p_train->cancel_ticket--;//退票数减1
 							the_ticket->flag = 0;//将排队票改为正常票
 							now_user->waiting_tickets--;//该用户的排队票数减少1
+							now_user->tickets++;//正常票加1
 							PWAI p_waiter = p_train->my_waiter;//保存要删除节点的地址
 							free(p_waiter);//释放空间
 							p_train->waiters--;//该火车的排队人数减少
@@ -308,8 +309,8 @@ int new_user_log(PUSE user_head,PUSE now_user)//新用户注册函数
 								//删除用户的排队票
 								if(p_the_ticket==now_user->my_ticket)
 								{//如果取消的票为第一张票
-									now_user->my_ticket = p_the_ticket->next;
-									flag2 = 0;
+									the_ticket = now_user->my_ticket->next;
+									now_user->my_ticket = p_the_ticket->next;				
 								}
 								else
 								{//如果取消的票为其他票
@@ -328,10 +329,6 @@ int new_user_log(PUSE user_head,PUSE now_user)//新用户注册函数
 			}
 			if(flag1)
 			the_ticket = the_ticket->next;
-			if(!flag2)
-			{
-				the_ticket = NULL;
-			}
 		}
 	}
 	int user_flag = 0;//返回用户选择项user_flag
@@ -347,13 +344,14 @@ int new_user_log(PUSE user_head,PUSE now_user)//新用户注册函数
 			case 5:user_flag = cancel_ticket(now_user,train_head);break;//退票
 			case 6:save_user(user_head);save_train(train_head);return -2;//退出系统
 			case -2:user_flag = 6;break;
+			case -1:user_flag = 0;break;
 			default:printf("return error\n");return -2;//提示错误信息
 		}
 	}
 	return 0;
 }
 
-int personal_change(PUSE user_head,PUSE p_user)
+int personal_change(PUSE user_head,PUSE p_user)//修改用户信息
 {
 	while(1)
 	{
@@ -363,24 +361,35 @@ int personal_change(PUSE user_head,PUSE p_user)
 		printf("\n\t请选择要修改的信息：\n");
 		printf("\t\t1  修改用户名\n");
 		printf("\t\t2  修改用户密码\n");
-		printf("\t\t3  退出系统\n");
+		printf("\t\t3  返回上一级\n");
+		printf("\t\t4  退出系统\n");
 		printf("\n");
 		printf("-------------------------------------------\n");
 		scanf("%d",&change_user_flag);
 		my_getchar();
-		while(change_user_flag>3||change_user_flag<1)
+		while(change_user_flag>4||change_user_flag<1)
 		{
 			printf("输入错误，请重试\n");
 			scanf("%d",&change_user_flag);
 			my_getchar();
 		}
 		char new_passwd[10];
+		char new_name[20];
 		switch(change_user_flag)
 		{
 			case 1:
 					printf("请输入新用户名\n");
-					scanf("%s",p_user->name);
+					scanf("%s",new_name);
 					my_getchar();
+					int check_flag = check_user_rename(new_name,user_head);
+					if(check_flag)
+					{
+						change_user_flag = 1;break;
+					}
+					else
+					{
+						strcpy(p_user->name,new_name);
+					}	
 					printf("用户名修改成功\n\t确定？");
 					my_getchar();
 					return 0;
@@ -390,14 +399,14 @@ int personal_change(PUSE user_head,PUSE p_user)
 					printf("用户密码修改成功\n\t确定？");
 					my_getchar();
 					return 0;
-			case 3:
-					return -2;
+			case 3:return 0;//返回上一级
+			case 4:return -2;//退出系统
 			default:printf("return error\n");return -2;
 		}
 	}
 }
 
-int cancel_ticket(PUSE now_user,PTRA train_head)
+int cancel_ticket(PUSE now_user,PTRA train_head)//退票
 {
 	if(0==now_user->tickets)
 	{
@@ -409,6 +418,7 @@ int cancel_ticket(PUSE now_user,PTRA train_head)
 	printf("订票信息如下:\n");
 	while(NULL!=the_ticket)
 	{
+		if(0==the_ticket->flag)
 		printf("车次:%s 出发站:%s[%s]-->目的站:%s[%s] 票价:[%d]元\n",\
 		the_ticket->train_name,the_ticket->start_station,\
 		the_ticket->start_time,the_ticket->aim_station,\
@@ -430,12 +440,13 @@ int cancel_ticket(PUSE now_user,PTRA train_head)
 			PTIK pri_the_ticket = NULL;
 			while(NULL!=the_ticket)
 			{
-				pri_the_ticket = the_ticket;//保存前一个节点的地址
+				
 				if(0==strcmp(the_ticket->train_name,the_train))
 				{
 					i++;
 					break;
 				}	
+				pri_the_ticket = the_ticket;//保存前一个节点的地址
 				the_ticket = the_ticket->next;
 			}
 			if(1==i)
@@ -444,13 +455,13 @@ int cancel_ticket(PUSE now_user,PTRA train_head)
 				{
 					if(0==strcmp(the_train,train_head->name))
 					{
-						if(train_head->waiters>=train_head->cancel_ticket)//如果该趟列车排队者数大于退票数则将退票计入退票数中
+						if(train_head->waiters>train_head->cancel_ticket)//如果该趟列车排队者数大于退票数则将退票计入退票数中
 						train_head->cancel_ticket++;//火车余票自增1
 						else//如果该趟列车排队者数小于退票数则将退票计入余票数中
 							train_head->tickets++;
 						//删除用户的订票信息
 						now_user->tickets--;//当前用户的正常票数减1
-						if(now_user->my_ticket==pri_the_ticket)//当删除的车票信息是第一张票时
+						if(now_user->my_ticket==the_ticket)//当删除的车票信息是第一张票时
 						{	
 							now_user->my_ticket = the_ticket->next;
 						}
@@ -473,11 +484,10 @@ int cancel_ticket(PUSE now_user,PTRA train_head)
 			}
 		}
 	}
-return 0;
+	return 0;
 }
 
-
-int book_ticket(PUSE now_user,PTRA p_train,char start_station[],char aim_station[],int book_way)
+int book_ticket(PUSE now_user,PTRA p_train,char start_station[],char aim_station[],int book_way)//订票
 {
 	PSTA order_station = p_train->my_station;
 	while(NULL!=order_station)
@@ -512,6 +522,7 @@ int book_ticket(PUSE now_user,PTRA p_train,char start_station[],char aim_station
 						p_train->tickets--;//余票减一
 						//保存订票信息到用户信息中
 						PTIK new_ticket = (PTIK)my_malloc(sizeof(TIK));
+						new_ticket->next = NULL;
 						if(NULL==now_user->my_ticket)//当该用户没订过票时
 						{
 							now_user->my_ticket = new_ticket;//连接新的订票信息节点
@@ -578,6 +589,7 @@ int search_the_train(PTRA train_head,PTRA *pp_train)//查找指定车次的火�
 		{
 			printf("错误的次数过多，请稍后再试。\n");
 			system("sleep 1.5");
+			i = 0;
 			return -1;
 		}
 		if(NULL==p_train->next)
