@@ -1,3 +1,10 @@
+/* Copyright(2013) liuweicong
+ * Author:liuweicong
+ * Date:2013.04.25
+ *
+ *
+ *
+ */
 #include "admin.h"
 #include "main.h"
 #include "common.h"
