@@ -1,3 +1,8 @@
+/*Copyright 2013 (C) 
+ *Version:0.9
+ *Date:2013.02.28
+ *Author:liuweicong <plus.cyg@gmail.com>
+ */
 #ifndef _COMMON_H
 #define _COMMON_H
 #include <stdio.h>

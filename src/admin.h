@@ -1,3 +1,8 @@
+/*Copyright 2013 (C) 
+ *Version:0.9
+ *Date:2013.02.28
+ *Author:liuweicong <plus.cyg@gmail.com>
+ */
 #ifndef _ADMIN_h
 #define _ADMIN_H
 #include "common.h"

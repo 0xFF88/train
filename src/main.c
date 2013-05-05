@@ -1,8 +1,8 @@
-/*火车票订票系统 0.9版
-*作者：刘维聪
-*最后修改日期：2013年02月26日
-*初始管理员和密码为admin
-*/
+/*Copyright 2013 (C) 
+ *Version:0.9
+ *Date:2013.02.28
+ *Author:liuweicong <plus.cyg@gmail.com>
+ */
 #include "main.h"
 #include "admin.h"
 #include "user.h"

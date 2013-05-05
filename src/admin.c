@@ -1,9 +1,7 @@
-/* Copyright(2013) liuweicong
- * Author:liuweicong
- * Date:2013.04.25
- *
- *
- *
+/*Copyright 2013 (C) 
+ *Version:0.9
+ *Date:2013.02.28
+ *Author:liuweicong <plus.cyg@gmail.com>
  */
 #include "admin.h"
 #include "main.h"
